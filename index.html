@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI & Work — Showroom</title>
+  <meta name="description" content="A minimalist, museum-like showroom exploring how AI will reshape work. Apple-like transitions, immaculate UI, picture-first.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #0b0e11;        /* gallery dark */
+      --ink: #eaeef4;       /* primary text */
+      --mute: #a7b2c3;      /* muted text */
+      --line: rgba(234,238,244,.08);
+      --accent: #9dd2ff;    /* cool blue glow */
+      --accent-2: #c8b7ff;  /* lilac */
+      --panel: #0f141a;
+      --glass: rgba(15,20,26, .55);
+      --radius: 20px;
+      --shadow: 0 10px 40px rgba(0,0,0,.35);
+    }
+
+    [data-theme="light"]{
+      --bg:#f7f8fb; --panel:#ffffff; --ink:#0c1118; --mute:#677388; --line:rgba(12,17,24,.08);
+      --shadow: 0 12px 30px rgba(10, 12, 20, .08);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0; color:var(--ink); background: radial-gradient(1000px 600px at 100% -10%, rgba(157,210,255,.12), transparent),
+                                      radial-gradient(900px 600px at -10% 20%, rgba(200,183,255,.12), transparent),
+                                      var(--bg);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      line-height:1.55;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory; /* museum-like page snapping */
+    }
+
+    /* Global spacing */
+    .frame{max-width:1200px; margin:0 auto; padding: 0 28px}
+
+    /* Sticky, glassy header with minimal nav dots */
+    .hud{position:fixed; inset:16px 16px auto auto; z-index:1000; display:flex; align-items:center; gap:10px; backdrop-filter: blur(10px) saturate(150%); background: color-mix(in oklab, var(--bg) 55%, transparent); border:1px solid var(--line); border-radius:999px; padding:8px 10px; box-shadow:var(--shadow)}
+    .dotnav{display:flex; gap:8px}
+    .dotnav button{width:10px; height:10px; border-radius:999px; border:1px solid var(--line); background: color-mix(in oklab, var(--panel) 70%, transparent); cursor:pointer; opacity:.8; transition: transform .25s ease, opacity .25s}
+    .dotnav button.active{transform: scale(1.2); opacity:1; background: linear-gradient(135deg, var(--accent), var(--accent-2))}
+    .hud .theme{border:none; background:transparent; color:var(--ink); font:inherit; cursor:pointer; padding:6px 10px; border-radius:10px}
+    .hud .theme:hover{background: color-mix(in oklab, var(--ink) 8%, transparent)}
+
+    /* Sections as rooms */
+    section.room{min-height:100vh; scroll-snap-align:start; display:grid; place-items:center; position:relative; isolation:isolate}
+    .inner{width:100%; max-width:1100px; display:grid; grid-template-columns: 1.1fr .9fr; gap:36px; align-items:center}
+    .inner.reverse{grid-template-columns: .9fr 1.1fr}
+    @media (max-width: 980px){ .inner, .inner.reverse{grid-template-columns:1fr; gap:22px} }
+
+    /* Visual slabs */
+    .slab{position:relative; border-radius: var(--radius); overflow:hidden; border:1px solid var(--line); background: linear-gradient(180deg, color-mix(in oklab, var(--panel) 95%, transparent), color-mix(in oklab, var(--panel) 70%, transparent)); box-shadow: var(--shadow)}
+    .slab img{display:block; width:100%; height:100%; object-fit:cover; transform: scale(1.04); transition: transform 1.2s ease}
+    .slab::after{content:""; position:absolute; inset:0; background: radial-gradient(100% 100% at 80% 0%, rgba(157,210,255,.15), transparent 40%),
+                                 radial-gradient(100% 100% at 0% 100%, rgba(200,183,255,.15), transparent 50%); mix-blend:screen; pointer-events:none}
+
+    /* Typographic panels */
+    .panel{padding:30px; border-radius: var(--radius); border:1px solid var(--line); background: linear-gradient(180deg, color-mix(in oklab, var(--panel) 92%, transparent), color-mix(in oklab, var(--panel) 72%, transparent)); box-shadow:var(--shadow)}
+    .eyebrow{letter-spacing:.18em; text-transform:uppercase; font-weight:700; font-size:.78rem; opacity:.75}
+    h1{font-size: clamp(2rem, 3.4vw + 1rem, 5rem); line-height:1.05; letter-spacing:-.02em; margin:0 0 12px}
+    h2{font-size: clamp(1.4rem, 1.2vw + .9rem, 2.2rem); margin:0 0 10px}
+    p.lead{font-size: clamp(1rem, .5vw + .9rem, 1.2rem); color:var(--mute); margin:0}
+    .caption{color:var(--mute); font-size:.9rem}
+
+    /* Hero room */
+    .hero .titlewrap{text-align:center; max-width:900px}
+    .hero .titlewrap .subtitle{color:var(--mute)}
+
+    /* Apple-like transitions: cross-fade + depth parallax */
+    .room{opacity:0; transform: translateY(20px) scale(.98); transition: opacity .9s ease, transform 1s cubic-bezier(.2,.8,.2,1)}
+    .room.active{opacity:1; transform:none}
+    .parallax{transform: translateY(var(--py, 0px)); will-change: transform}
+
+    /* Divider with subtle glow line */
+    .divider{height:1px; background:
+      linear-gradient(90deg, transparent, color-mix(in oklab, var(--ink) 10%, transparent), transparent)}
+
+    /* Statement block */
+    .quote{font-size: clamp(1.2rem, .9vw + 1rem, 2rem); font-weight:700; letter-spacing:-.01em}
+
+    /* Foot */
+    footer{padding:40px 0 60px; color:var(--mute); text-align:center}
+
+    /* Cursor hint */
+    .hint{position:fixed; left:16px; bottom:16px; font-size:.9rem; color:var(--mute); padding:8px 12px; border:1px solid var(--line); border-radius:12px; background: color-mix(in oklab, var(--panel) 65%, transparent); backdrop-filter: blur(8px)}
+  </style>
+</head>
+<body>
+  <div class="hud" aria-label="Navigation & theme">
+    <div class="dotnav" id="dotnav"></div>
+    <button class="theme" id="theme">🌗</button>
+  </div>
+  <div class="hint">Scroll • Snap • Enjoy</div>
+
+  <!-- ROOM 1: Hero -->
+  <section class="room hero" id="room-1" aria-label="Intro">
+    <div class="frame" style="display:grid; place-items:center; min-height:100vh">
+      <div class="titlewrap">
+        <div class="eyebrow">Global Perspectives</div>
+        <h1 class="parallax" style="--py:-6px">AI & Work</h1>
+        <p class="subtitle parallax" style="--py:6px">A museum-like walk through how AI reshapes <em>tasks</em>, occupations, and opportunity.</p>
+      </div>
+    </div>
+  </section>
+  <div class="divider"></div>
+
+  <!-- ROOM 2: Gallery Left -->
+  <section class="room" id="room-2" aria-label="Diagnostics">
+    <div class="frame">
+      <div class="inner">
+        <figure class="slab parallax" style="height:68vh; --py:-10px">
+          <img alt="Abstract medical imaging" src="https://images.unsplash.com/photo-1632768995123-5c6ed2c7bb1a?q=80&w=1600&auto=format&fit=crop"/>
+        </figure>
+        <div class="panel parallax" style="--py:8px">
+          <div class="eyebrow">Healthcare</div>
+          <h2>Diagnostics become AI-first</h2>
+          <p class="lead">Models triage images and flag anomalies; clinicians focus on judgment and care. The role shifts, the <em>human purpose</em> stays.</p>
+          <p class="caption">Replace the image and text to match your research or sources.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="divider"></div>
+
+  <!-- ROOM 3: Gallery Right -->
+  <section class="room" id="room-3" aria-label="Logistics">
+    <div class="frame">
+      <div class="inner reverse">
+        <div class="panel parallax" style="--py:8px">
+          <div class="eyebrow">Transportation</div>
+          <h2>From drivers to supervisors</h2>
+          <p class="lead">Highway autonomy handles steady-state. People orchestrate fleets, exceptions, and city complexity.</p>
+          <p class="caption">Short copy. Big image. Museum energy.</p>
+        </div>
+        <figure class="slab parallax" style="height:68vh; --py:-10px">
+          <img alt="Night highway" src="https://images.unsplash.com/photo-1493238792000-8113da705763?q=80&w=1600&auto=format&fit=crop"/>
+        </figure>
+      </div>
+    </div>
+  </section>
+  <div class="divider"></div>
+
+  <!-- ROOM 4: Statement -->
+  <section class="room" id="room-4" aria-label="Statement">
+    <div class="frame">
+      <div class="panel" style="max-width:900px; margin: 0 auto; text-align:center">
+        <p class="quote">AI rarely replaces an entire <strong>job</strong>. It replaces repeatable <strong>tasks</strong>—and elevates the rest.</p>
+        <p class="caption" style="margin-top:8px">Design your learning around the part that gets elevated.</p>
+      </div>
+    </div>
+  </section>
+  <div class="divider"></div>
+
+  <!-- ROOM 5: Gallery Left (Creative) -->
+  <section class="room" id="room-5" aria-label="Creative">
+    <div class="frame">
+      <div class="inner">
+        <figure class="slab parallax" style="height:68vh; --py:-10px">
+          <img alt="Studio light and color" src="https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1600&auto=format&fit=crop"/>
+        </figure>
+        <div class="panel parallax" style="--py:8px">
+          <div class="eyebrow">Creative Work</div>
+          <h2>Taste becomes the advantage</h2>
+          <p class="lead">Drafting is instant. Direction, taste, and culture decide what ships.</p>
+          <p class="caption">Keep text discreet. Let the imagery lead.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="divider"></div>
+
+  <!-- ROOM 6: Minimal data display (optional) -->
+  <section class="room" id="room-6" aria-label="Signals">
+    <div class="frame">
+      <div class="inner">
+        <div class="panel">
+          <div class="eyebrow">Signals</div>
+          <h2>Three quiet facts</h2>
+          <p class="lead">1) AI exposure varies by task, not title. 2) Adoption pace differs by policy. 3) Transitions reward continuous learners.</p>
+        </div>
+        <figure class="slab" style="height:40vh">
+          <img alt="Minimal gradient" src="https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=1600&auto=format&fit=crop"/>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="frame">
+      Global Perspectives · AI & Work — showroom build. Replace images/text as needed.
+    </div>
+  </footer>
+
+  <script>
+    // Theme toggle
+    const themeBtn = document.getElementById('theme');
+    (function initTheme(){
+      const saved = localStorage.getItem('theme');
+      if(saved){ document.body.setAttribute('data-theme', saved); }
+    })();
+    themeBtn.addEventListener('click', ()=>{
+      const next = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      document.body.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+
+    // Build dot navigation based on rooms
+    const rooms = Array.from(document.querySelectorAll('.room'));
+    const dotnav = document.getElementById('dotnav');
+    rooms.forEach((r, i)=>{
+      const b = document.createElement('button');
+      b.setAttribute('aria-label', `Go to section ${i+1}`);
+      b.addEventListener('click', ()=> r.scrollIntoView({behavior:'smooth'}));
+      dotnav.appendChild(b);
+    });
+
+    // Intersection-driven activation + parallax
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('active');
+        }
+      })
+    }, {threshold:.55});
+    rooms.forEach(r=> io.observe(r));
+
+    // Track current room for nav dots
+    const ioDots = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          const idx = rooms.indexOf(e.target);
+          dotnav.querySelectorAll('button').forEach((d,i)=> d.classList.toggle('active', i===idx));
+        }
+      })
+    }, {threshold:.6});
+    rooms.forEach(r=> ioDots.observe(r));
+
+    // Subtle parallax based on viewport offset
+    function parallax(){
+      rooms.forEach(room=>{
+        const rect = room.getBoundingClientRect();
+        const center = rect.top + rect.height/2 - window.innerHeight/2;
+        const strength = Math.max(-40, Math.min(40, -center * 0.06));
+        room.querySelectorAll('.parallax').forEach(el=>{
+          el.style.setProperty('--py', strength+'px');
+        });
+        room.querySelectorAll('.slab img').forEach(img=>{
+          const z = Math.max(.98, Math.min(1.06, 1 + strength/400));
+          img.style.transform = `scale(${z})`;
+        });
+      });
+    }
+    parallax();
+    document.addEventListener('scroll', parallax, {passive:true});
+    window.addEventListener('resize', parallax);
+  </script>
+</body>
+</html>
